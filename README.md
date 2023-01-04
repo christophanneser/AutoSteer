@@ -13,8 +13,8 @@ This prototype implementation is licensed under the 'MIT license' (see LICENSE).
 - python3 (at least version 3.10)
 
 ### Python3 requirements
-
-- Install python requirements using the file `pip3 install -r requirements.txt`
+- !!! This `branch` does install only the requirements for PrestoDB, other databases are not supported. Torch CPU-version only without cuda!!!
+- Install python requirements using the file `pip3 install -r requirements.txt --find-links https://download.pytorch.org/whl/torch_stable.html`
 
 ## Run AutoSteer
 

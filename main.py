@@ -5,7 +5,7 @@ import os
 import sys
 
 import connectors.connector
-from connectors import mysql_connector, duckdb_connector, postgres_connector, presto_connector, spark_connector
+from connectors import presto_connector
 from utils.arguments_parser import get_parser
 from utils.custom_logging import logger
 from autosteer.dp_exploration import explore_optimizer_configs
@@ -24,16 +24,8 @@ def inference_mode(connector, benchmark: str, retrain: bool, create_datasets: bo
 
 
 def get_connector_type(connector: str) -> Type[connectors.connector.DBConnector]:
-    if connector == 'postgres':
-        return postgres_connector.PostgresConnector
-    elif connector == 'mysql':
-        return mysql_connector.MySqlConnector
-    elif connector == 'spark':
-        return spark_connector.SparkConnector
-    elif connector == 'presto':
+    if connector == 'presto':
         return presto_connector.PrestoConnector
-    elif connector == 'duckdb':
-        return duckdb_connector.DuckDBConnector
     logger.fatal('Unknown connector %s', connector)
 
 
