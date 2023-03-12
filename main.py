@@ -64,4 +64,7 @@ if __name__ == '__main__':
         logger.info('Found the following SQL files: %s', queries)
         for query in queries:
             logger.info('run Q%s...', query)
-            approx_query_span_and_run(ConnectorType, args.benchmark, query)
+            try:
+                approx_query_span_and_run(ConnectorType, args.benchmark, query)
+            except Exception:
+                logger.error('Query execution failed!')
