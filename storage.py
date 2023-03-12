@@ -194,7 +194,19 @@ def select_query(query, params):
         return [row[0] for row in cursor.fetchall()]
 
 
-def register_query_config(query_path, disabled_rules, query_plan: dict, plan_hash):
+def register_query_config_analyzed_plan(query_path, disabled_rules, analyzed_query_plan):
+    print('update analyzed query plan')
+    with _db() as conn:
+        num_disabled_rules = 0 if disabled_rules is None else disabled_rules.count(',') + 1
+        stmt = f"""UPDATE query_optimizer_configs
+                   SET analyzed_query_plan = :analyzed_query_plan
+                   WHERE query_id = (SELECT id FROM queries WHERE query_path = :query_path)
+                     and disabled_rules = :disabled_rules
+               """
+        conn.execute(stmt, disabled_rules=str(disabled_rules), analyzed_query_plan=analyzed_query_plan, query_path=query_path)
+
+
+def register_query_config(query_path, disabled_rules, query_plan, plan_hash):
     """
     Store the passed query optimizer configuration in the database.
     :returns: query plan is already known and a duplicate

@@ -58,6 +58,11 @@ class PostgresConnector(DBConnector):
         self.cursor.execute(f'EXPLAIN (FORMAT JSON) {query}')
         return json.dumps(self.cursor.fetchone()[0][0]['Plan'])
 
+    def analyze(self, query: str) ->str:
+        """Analyze a query and return the json query plan"""
+        self.cursor.execute(f'EXPLAIN (FORMAT JSON, ANALYZE, COSTS, BUFFERS) {query}')
+        return json.dumps(self.cursor.fetchone()[0][0]['Plan'])
+
     def execute(self, query: str) -> DBConnector.TimedResult:
         """Execute the query and return its result"""
         begin = time.time_ns()

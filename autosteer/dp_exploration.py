@@ -7,7 +7,7 @@ import storage
 from autosteer.optimizer_config import HintSetExploration
 from utils.custom_logging import logger
 from utils.config import read_config
-from utils.util import read_sql_file, hash_sql_result, hash_query_plan
+from utils.util import read_sql_file, hash_sql_result, hash_query_plan, drop_caches
 
 
 def register_query_config_and_measurement(query_path, disabled_rules, logical_plan, timed_result=None, initial_call=False) -> bool:
@@ -28,7 +28,7 @@ def register_query_config_and_measurement(query_path, disabled_rules, logical_pl
 
 
 def explore_optimizer_configs(connector: connectors.connector.DBConnector, query_path):
-    """Use dynamic programming to find good optimizer configs"""
+    """Use greedy algorithm to find good optimizer configs"""
     logger.info('Start exploring optimizer configs for query %s', query_path)
     sql_query = read_sql_file(query_path)
 
@@ -36,24 +36,31 @@ def explore_optimizer_configs(connector: connectors.connector.DBConnector, query
     num_duplicate_plans = 0
     while hint_set_exploration.has_next():
         connector.set_disabled_knobs(hint_set_exploration.next())
+        drop_caches()
         query_plan = connector.explain(sql_query)
         # Check if a new query plan is generated
         if register_query_config_and_measurement(query_path, hint_set_exploration.get_disabled_opts_rules(), query_plan, timed_result=None, initial_call=True):
             num_duplicate_plans += 1
             continue
+        analyzed_plan = connector.analyze(sql_query)
+        storage.register_query_config_analyzed_plan(query_path, hint_set_exploration.get_disabled_opts_rules(), analyzed_plan)
+        # Todo: get stats from analyzed_plan
         execute_hint_set(hint_set_exploration, connector, query_path, sql_query, query_plan)
     logger.info('Found %s duplicated query plans!', num_duplicate_plans)
 
 
 def execute_hint_set(config: HintSetExploration, connector: connectors.connector.DBConnector, query_path: str, sql_query: str, query_plan: str):
     """Execute and register measurements for an optimizer configuration"""
-    for _ in range(int(read_config()['autosteer']['repeats'])):
+    for repeat in range(int(read_config()['autosteer']['repeats']) + 2):
         try:
             timed_result = connector.execute(sql_query)
         # pylint: disable=broad-except
         except Exception as e:
             logger.fatal('Optimizer %s cannot be disabled for %s - skip this config. The error: %s', config.get_disabled_opts_rules(), query_path, e)
             break
+
+        if repeat < 2:
+            continue
 
         if register_query_config_and_measurement(query_path, config.get_disabled_opts_rules(), query_plan, timed_result):
             logger.info('config results in already known query plan!')

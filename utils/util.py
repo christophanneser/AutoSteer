@@ -6,6 +6,7 @@
 import operator
 from functools import reduce
 import hashlib
+import os
 
 
 def read_sql_file(filename, encoding='utf-8') -> str:
@@ -43,3 +44,7 @@ def hash_query_plan(s):
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
+def drop_caches():
+    """Drop all caches before executing a new query_optimizer_config"""
+    os.system('sync; sudo sh -c "/usr/bin/echo 3 > /proc/sys/vm/drop_caches"')

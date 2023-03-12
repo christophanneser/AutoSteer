@@ -37,6 +37,10 @@ class DBConnector:
         """Explain a query and return its plan"""
         raise NotImplementedError()
 
+    def analyze(self, query: str) ->str:
+        """Explain and analyze a query and return its plan incl. the costs"""
+        raise NotImplementedError()
+
     def execute(self, query: str) -> TimedResult:
         """Execute the query and return its timed result"""
         raise NotImplementedError()

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS query_optimizer_configs
     query_id             INTEGER REFERENCES queries NOT NULL,
     disabled_rules       TEXT NOT NULL, -- this column represents exactly one hint-set
     query_plan           TEXT NOT NULL,
+    analyzed_query_plan  TEXT,          -- contains actual execution statistics
     num_disabled_rules   INTEGER NOT NULL,
     hash                 INTEGER NOT NULL, -- the hash value of the optimizer query plan
     duplicated_plan      BOOLEAN DEFAULT FALSE NOT NULL,
@@ -52,6 +53,10 @@ CREATE TABLE IF NOT EXISTS measurements
     id                        INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL ,
     query_optimizer_config_id INTEGER REFERENCES query_optimizer_configs NOT NULL,
     walltime                  INTEGER NOT NULL,
+    io                        INTEGER,
+    memory                    INTEGER,
+    rows                      INTEGER,
+    rows_width                INTEGER,
     machine                   TEXT NOT NULL,
     time                      TIMESTAMP NOT NULL,
     input_data_size           INTEGER NOT NULL,
